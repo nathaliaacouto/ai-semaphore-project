@@ -1,4 +1,5 @@
 import time as t
+import random
 
 GREEN_LIGHT_REQUEST = 1
 GREEN_LIGHT = "Green"
@@ -23,18 +24,37 @@ class TrafficLight:
 
 
 class Vehicle:
-    def __init__(self, waiting_time, position):
+    def __init__(self, waiting_time, position, weather_condition):
         self.waiting_time = waiting_time
         self.position = position
+        self.weather_condition = weather_condition
 
     def stop(self, color):
         if color == "Red":
             print("Stop, red light")
+        if self.weather_condition == "Rainy":
+            print("Weather is rainy. Adjusting speed due to safety concerns.")
+                # Additional logic for adjusting speed in rainy conditions
 
     def request_green_light(self):
         if self.waiting_time > 15:
             print("Waiting time is too long, requesting green light")
             return GREEN_LIGHT_REQUEST
+
+    def adjust_speed_based_on_weather(self):
+        if self.weather_condition == "Rainy":
+            print("Adjusting speed due to rainy weather.")
+            slowing_factor = random.uniform(0.7, 1.0)
+        elif self.weather_condition == "Snowy":
+            print("Adjusting speed due to snowy weather.")
+            slowing_factor = random.uniform(0.5, 0.8)
+        elif self.weather_condition == "Foggy":
+            print("Adjusting speed due to foggy weather.")
+            slowing_factor = random.uniform(0.6, 0.9)
+        else:
+            slowing_factor = 1.0  # No adjustment for other conditions
+
+        self.waiting_time = int(self.waiting_time * slowing_factor)
 
 
 class RoadSign:
@@ -47,8 +67,8 @@ class Lane:
         self.lane_id = lane_id
         self.vehicles = []
 
-    def add_vehicle(self, waiting_time, position):
-        vehicle = Vehicle(waiting_time, position)
+    def add_vehicle(self, waiting_time, position, weather_condition):
+        vehicle = Vehicle(waiting_time, position, weather_condition)
         self.vehicles.append(vehicle)
 
 
@@ -57,14 +77,19 @@ class Road:
         self.name = name
         self.lanes = [Lane(i) for i in range(num_lanes)]
 
+class WeatherCondition:
+    def __init__(self, condition):
+        self.condition = condition
+
 
 class Intersection:
     #Adds a new attribute road to the Intersection class, representing a road associated with each intersection.The road is initialized as an instance of the Road class with two lanes.
 
-    def __init__(self, name, traffic_light_color, traffic_light_time, road_sign_type):
+    def __init__(self, name, traffic_light_color, traffic_light_time, road_sign_type,weather_condition):
         self.name = name
         self.traffic_light = TrafficLight(traffic_light_color, traffic_light_time)
         self.road_sign = RoadSign(road_sign_type)
+        self.weather_condition = WeatherCondition(weather_condition)
 
         # Additional attributes
         self.road = Road(f"{name}_Road", 2)  # Each intersection has a two-lane road
@@ -161,12 +186,13 @@ class EmergencyVehicleAgent:
 
 # Extend the Environment class to include the new agents
 class Environment:
+    WEATHER_CONDITIONS = ["Clear", "Rainy", "Snowy", "Foggy"]
     def __init__(self):
         road_1 = Road("Road_1", 2)  # 2 lanes
         road_2 = Road("Road_2", 3)  # 3 lanes
 
-        intersection_1 = Intersection("Intersection_1", "Red", 5, "Stop")
-        intersection_2 = Intersection("Intersection_2", "Green", 5, "Yield")
+        intersection_1 = Intersection("Intersection_1", "Red", 5, "Stop", self.get_random_weather())
+        intersection_2 = Intersection("Intersection_2", "Green", 5, "Yield", self.get_random_weather())
 
         # data structures to keep the data related to the environment
         self.roads = [road_1, road_2]
@@ -178,9 +204,16 @@ class Environment:
         self.emergency_agent = EmergencyVehicleAgent()
 
         # Populate lanes with vehicles for testing
-        road_1.lanes[0].add_vehicle(10, "Position_A")
-        road_2.lanes[1].add_vehicle(25, "Position_B")
+        road_1.lanes[0].add_vehicle(10, "Position_A","Rainy")
+        road_2.lanes[1].add_vehicle(25, "Position_B","Rainy")
 
+    def adjust_speeds_based_on_weather(self):
+        for intersection in self.intersections:
+            for lane in intersection.road.lanes:
+                for vehicle in lane.vehicles:
+                    vehicle.adjust_speed_based_on_weather()
+    def get_random_weather(self):
+        return random.choice(self.WEATHER_CONDITIONS)
     def add_road(self, road):
         self.roads.append(road)
 
@@ -216,6 +249,7 @@ class Environment:
         self.central_agent.optimize_traffic_flow()
         self.disruption_agent.predict_disruptions()
         self.emergency_agent.request_priority()
+        self.adjust_speeds_based_on_weather()
 
 
 if __name__ == "__main__":
