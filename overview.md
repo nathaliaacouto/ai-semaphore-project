@@ -107,3 +107,15 @@ The 'jid' and 'password' all Agents have in their init are for the system and sh
 ## Conclusion
 
 This Traffic Management System provides a modular and extensible framework for handling various aspects of traffic control, disruption prediction, and emergency scenarios. It includes well-defined Agents with encapsulated functionalities, promoting maintainability and scalability. The placeholder logic enables further customization based on specific use cases.
+
+# Tests
+
+## First test
+This first test is the simplest of all, the objective is to see how much time a car awaits in the red light, given the conditions:
+
+- 1 traffic light
+- 10 cars
+- set time for changing colors and set number of cars
+
+By running it, it will display the colors of the traffic light as they change, the amout of time each car stayed on the red light, the total awaiting time for all cars, and the medium awaiting time for one car
+
