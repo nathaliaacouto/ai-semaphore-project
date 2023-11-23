@@ -2,6 +2,9 @@
 import unittest
 import asyncio
 import spade
+import sys
+import time as t
+from spade.agent import Agent
 
 from traffic_agents import Environment, GREEN_LIGHT, RED_LIGHT, YELLOW_LIGHT, REQUEST_GREEN_LIGHT
 

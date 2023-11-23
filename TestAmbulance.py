@@ -1,6 +1,9 @@
 import unittest
 import spade
 from unittest import mock
+import sys
+import time as t
+from spade.agent import Agent
 from traffic_agents import EmergencyVehicle, GREEN_LIGHT
 
 class TestEmergencyVehicle(unittest.TestCase):
