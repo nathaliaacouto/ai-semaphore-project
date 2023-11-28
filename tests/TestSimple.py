@@ -20,7 +20,7 @@ class TrafficLight(Agent):
     class TrafficLightBehav(CyclicBehaviour):
         async def run(self):
             print(self.agent.color)
-            await asyncio.sleep(24) # green light on for 24 seconds
+            await asyncio.sleep(10) # green light on for 24 seconds
 
             self.agent.change_color()
             print(self.agent.color)  
@@ -28,7 +28,7 @@ class TrafficLight(Agent):
 
             self.agent.change_color()
             print(self.agent.color)  
-            await asyncio.sleep(30) # red light on for 30 seconds
+            await asyncio.sleep(5) # red light on for 30 seconds
 
             self.agent.change_color()
 
@@ -97,12 +97,12 @@ async def main():
     traffic_light_agent = TrafficLight(light_time, "admin@localhost", "password")
     await traffic_light_agent.start()
 
-    await asyncio.sleep(20)
+    await asyncio.sleep(10)
     for i in range(10):
         vehicle_agent = Vehicle(traffic_light_agent, "admin@localhost", "password")
         await vehicle_agent.start()
 
-        await asyncio.sleep(5);
+        await asyncio.sleep(1);
 
     print(f"Total awaiting time for all cars = {AWAITING_TIME_TOTAL:.2f} seconds")
     print(f"Medium awaiting time for one car = {(AWAITING_TIME_TOTAL/10):.2f} seconds")
