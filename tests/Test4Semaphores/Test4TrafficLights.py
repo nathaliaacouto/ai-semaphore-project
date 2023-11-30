@@ -6,7 +6,7 @@
 #   each car has a position and a random speed from 0.2 to 1 
 #   each car can only go *forward*
 # 4 roads with 2 lanes each
-# the purpose of this test is to see how much time the car awaits in the red light
+# the purpose of this test is to see how much time the car awaits in each red lights
 
 import random
 import spade
@@ -21,14 +21,9 @@ YELLOW_LIGHT = "Yellow"
 RED_LIGHT = "Red"
 AWAITING_TIME_TOTAL = 0
 
-start_position_car_first_light = 0
-position_first_light = 1
-start_position_car_second_light = 2
-position_second_light = 3
-start_position_car_third_light = 4
-position_third_light = 5
-start_position_car_fourth_light = 6
-position_fourth_light = 7
+position_ligths = [1, 3, 5, 7]
+start_position_cars = [0, 2, 4, 6] 
+awaiting_time_for_light = [0, 0, 0, 0]
 
 class TrafficLight(Agent):
     # Behaviour
@@ -80,10 +75,9 @@ class Vehicle(Agent):
     class VehicleBehav(CyclicBehaviour):
         async def run(self):
             position_light = 0
-            if self.agent.traffic_light.number == 1:
-                position_light = position_first_light
-            elif self.agent.traffic_light.number == 2:
-                position_light = position_second_light
+            for i in range(len(position_ligths)):
+                if self.agent.traffic_light.number == i: # if light 1, 2, 3, 4
+                    position_light = position_ligths[i-1] # position 0 in list
 
             if self.agent.position == self.agent.start_position:
                 self.agent.creation_time = t.time() # the time car enters the road
@@ -102,6 +96,7 @@ class Vehicle(Agent):
                         global AWAITING_TIME_TOTAL
                         total_stop_time = self.agent.waiting_time
                         AWAITING_TIME_TOTAL += total_stop_time
+                        awaiting_time_for_light[(self.agent.traffic_light.number)-1] += total_stop_time
 
                         print(f"Green, going. The car was in the red light {self.agent.traffic_light.number} for {total_stop_time:.2f} seconds")
                         
@@ -164,16 +159,16 @@ class Road(Agent):
 
 async def main():
     light_time = 60 # doesn't really matter now
-    traffic_light_agent1 = TrafficLight("Green", light_time, position_first_light, 1, "admin@localhost", "password")
+    traffic_light_agent1 = TrafficLight("Green", light_time, position_ligths[0], 1, "admin@localhost", "password")
     await traffic_light_agent1.start()
 
-    traffic_light_agent2 = TrafficLight("Red", light_time, position_second_light, 2, "admin@localhost", "password")
+    traffic_light_agent2 = TrafficLight("Red", light_time, position_ligths[1], 2, "admin@localhost", "password")
     await traffic_light_agent2.start()
 
-    traffic_light_agent3 = TrafficLight("Green", light_time, position_third_light, 3, "admin@localhost", "password")
+    traffic_light_agent3 = TrafficLight("Green", light_time, position_ligths[2], 3, "admin@localhost", "password")
     await traffic_light_agent3.start()
 
-    traffic_light_agent4 = TrafficLight("Red", light_time, position_second_light, 4, "admin@localhost", "password")
+    traffic_light_agent4 = TrafficLight("Red", light_time, position_ligths[3], 4, "admin@localhost", "password")
     await traffic_light_agent4.start()
 
     road_agent1 = Road("2450", 2, "admin@localhost", "password")
@@ -184,32 +179,39 @@ async def main():
     count_vehicles = 0
     for i in range(random.randint(5, 30)):
         speed = round(random.uniform(0.2, 1.0), 1)
-        vehicle_agent1 = Vehicle(start_position_car_first_light, speed, traffic_light_agent1, "admin@localhost", "password")
+        vehicle_agent1 = Vehicle(start_position_cars[0], speed, traffic_light_agent1, "admin@localhost", "password")
         await vehicle_agent1.start()
-        road_agent1.add_vehicle(0, start_position_car_first_light, speed, traffic_light_agent1, "admin@localhost", "password")
+        road_agent1.add_vehicle(0, start_position_cars[0], speed, traffic_light_agent1, "admin@localhost", "password")
 
         speed = round(random.uniform(0.2, 1.0), 1)
-        vehicle_agent2 = Vehicle(start_position_car_second_light, speed, traffic_light_agent2, "admin@localhost", "password")
+        vehicle_agent2 = Vehicle(start_position_cars[1], speed, traffic_light_agent2, "admin@localhost", "password")
         await vehicle_agent2.start()
-        road_agent2.add_vehicle(0, start_position_car_second_light, speed, traffic_light_agent2, "admin@localhost", "password")
+        road_agent2.add_vehicle(0, start_position_cars[1], speed, traffic_light_agent2, "admin@localhost", "password")
 
         speed = round(random.uniform(0.2, 1.0), 1)
-        vehicle_agent3 = Vehicle(start_position_car_third_light, speed, traffic_light_agent3, "admin@localhost", "password")
+        vehicle_agent3 = Vehicle(start_position_cars[2], speed, traffic_light_agent3, "admin@localhost", "password")
         await vehicle_agent3.start()
-        road_agent1.add_vehicle(1, start_position_car_third_light, speed, traffic_light_agent3, "admin@localhost", "password")
+        road_agent1.add_vehicle(1, start_position_cars[2], speed, traffic_light_agent3, "admin@localhost", "password")
 
         speed = round(random.uniform(0.2, 1.0), 1)
-        vehicle_agent4 = Vehicle(start_position_car_fourth_light, speed, traffic_light_agent4, "admin@localhost", "password")
+        vehicle_agent4 = Vehicle(start_position_cars[3], speed, traffic_light_agent4, "admin@localhost", "password")
         await vehicle_agent4.start()
-        road_agent2.add_vehicle(1, start_position_car_fourth_light, speed, traffic_light_agent4, "admin@localhost", "password")
+        road_agent2.add_vehicle(1, start_position_cars[3], speed, traffic_light_agent4, "admin@localhost", "password")
 
         count_vehicles = count_vehicles + 4 # this will count the vehicles, since we have 4 agents being created, we need +4
         await asyncio.sleep(5);
 
     await asyncio.sleep(10);
 
+    print("\n----- TOTAL -----")
     print(f"Total awaiting time for all {count_vehicles} vehicles = {AWAITING_TIME_TOTAL:.2f} seconds")
     print(f"Medium awaiting time for one vehicle = {(AWAITING_TIME_TOTAL/count_vehicles):.2f} seconds")
+
+    for i in range(len(awaiting_time_for_light)):
+        vehicles_in_one_light = count_vehicles/4
+        print(f"\n----- LIGHT {i+1} -----")
+        print(f"Total awaiting time for light {i+1}: {awaiting_time_for_light[i]:.2f} seconds")
+        print(f"Medium awaiting time one vehicle in light {i+1}: {(awaiting_time_for_light[i]/vehicles_in_one_light):.2f} seconds")
 
     sys.exit()
 
