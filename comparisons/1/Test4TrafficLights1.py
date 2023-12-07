@@ -2,12 +2,13 @@
 # 4 traffic lights with position and color 
 #   when TL1 is open, TL3 is also open, the others are closed
 #   when TL2 is open, TL4 is also open, the others are closed
-# a random number of cars whithin the random range 5-30 * 4, 
+# 100 cars, 
 #   each car has a position and a random speed from 0.2 to 1 
 #   each car can only go *forward*
 # 4 roads with 2 lanes each
 # 
-# rules: none
+# rules: 
+# none
 
 
 import random
@@ -21,7 +22,7 @@ from spade.behaviour import CyclicBehaviour, OneShotBehaviour
 GREEN_LIGHT = "Green"
 YELLOW_LIGHT = "Yellow"
 RED_LIGHT = "Red"
-AWAITING_TIME_TOTAL = 0
+awaiting_time_total = 0
 
 position_ligths = [1, 3, 5, 7]
 start_position_cars = [0, 2, 4, 6] 
@@ -100,12 +101,12 @@ class Vehicle(Agent):
 
                     if light_color == "Green": 
                         # if the light is green, check how much time the car was waiting and let it go
-                        global AWAITING_TIME_TOTAL
+                        global awaiting_time_total
                         total_stop_time = self.agent.waiting_time
                         for i in range(len(position_ligths)):
                             if self.agent.traffic_light.number == i+1: # if light 1, 2, 3, 4
                                 vehicles_times[i].append(round(total_stop_time, 2));
-                        AWAITING_TIME_TOTAL += total_stop_time
+                        awaiting_time_total += total_stop_time
                         awaiting_time_for_light[(self.agent.traffic_light.number)-1] += total_stop_time
 
                         print(f"Green, going. The car was in the red light {self.agent.traffic_light.number} for {total_stop_time:.2f} seconds")
@@ -173,52 +174,6 @@ class Road(Agent):
         vehicle = Vehicle(position, speed, light, jid, password)
         self.lanes[num_lane].add_vehicle(vehicle)
 
-
-class CentralCoordinationAgent(Agent):
-    # Behaviour
-    class CentralCoordinationBehav(CyclicBehaviour):
-        async def run(self):
-            for i in range(len(vehicles_lines)):
-                if len(vehicles_lines[i]) > 10 and awaiting_time_for_light[i] > 30:
-                    if self.agent.traffic_lights[i].number == 1:
-                        self.agent.traffic_lights[1].central_change_color(RED_LIGHT)
-                        self.agent.traffic_lights[3].central_change_color(RED_LIGHT)
-                        await asyncio.sleep(2)
-                        self.agent.traffic_lights[i].central_change_color(GREEN_LIGHT)
-                        self.agent.traffic_lights[2].central_change_color(GREEN_LIGHT)
-
-                    if self.agent.traffic_lights[i].number == 2:
-                        self.agent.traffic_lights[0].central_change_color(RED_LIGHT)
-                        self.agent.traffic_lights[2].central_change_color(RED_LIGHT)
-                        await asyncio.sleep(2)
-                        self.agent.traffic_lights[i].central_change_color(GREEN_LIGHT)
-                        self.agent.traffic_lights[3].central_change_color(GREEN_LIGHT)
-
-                    if self.agent.traffic_lights[i].number == 3:
-                        self.agent.traffic_lights[1].central_change_color(RED_LIGHT)
-                        self.agent.traffic_lights[3].central_change_color(RED_LIGHT)
-                        await asyncio.sleep(2)
-                        self.agent.traffic_lights[i].central_change_color(GREEN_LIGHT)
-                        self.agent.traffic_lights[0].central_change_color(GREEN_LIGHT)
-
-                    if self.agent.traffic_lights[i].number == 4:
-                        self.agent.traffic_lights[0].central_change_color(RED_LIGHT)
-                        self.agent.traffic_lights[2].central_change_color(RED_LIGHT)
-                        await asyncio.sleep(2)
-                        self.agent.traffic_lights[i].central_change_color(GREEN_LIGHT)
-                        self.agent.traffic_lights[1].central_change_color(GREEN_LIGHT)
-    # Behaviour
-
-    def __init__(self, tf1, tf2, tf3, tf4, jid: str, password: str, verify_security: bool = False, *args, **kwargs):
-        super().__init__(jid, password, verify_security)
-        self.traffic_lights = [tf1, tf2, tf3, tf4]
-
-    async def setup(self):
-        await super().setup()
-        behaviour = self.CentralCoordinationBehav()
-        self.add_behaviour(behaviour)
-
-
 async def main():
     start_time = t.time();
     light_time = 60 # doesn't really matter now
@@ -233,9 +188,6 @@ async def main():
 
     traffic_light_agent4 = TrafficLight("Red", light_time, position_ligths[3], 4, "admin@localhost", "password")
     await traffic_light_agent4.start()
-
-    central_agent = CentralCoordinationAgent(traffic_light_agent1, traffic_light_agent2, traffic_light_agent3, traffic_light_agent4, "admin@localhost", "password")
-    await central_agent.start()
 
     road_agent1 = Road("2450", 2, "admin@localhost", "password")
     road_agent2 = Road("4763", 2, "admin@localhost", "password")
@@ -268,8 +220,8 @@ async def main():
     await asyncio.sleep(10);
 
     print("\n----- TOTAL -----")
-    print(f"Total awaiting time for all {count_vehicles} vehicles = {AWAITING_TIME_TOTAL:.2f} seconds")
-    print(f"Medium awaiting time for one vehicle = {(AWAITING_TIME_TOTAL/count_vehicles):.2f} seconds")
+    print(f"Total awaiting time for all {count_vehicles} vehicles = {awaiting_time_total:.2f} seconds")
+    print(f"Medium awaiting time for one vehicle = {(awaiting_time_total/count_vehicles):.2f} seconds")
 
     for i in range(len(awaiting_time_for_light)):
         vehicles_in_one_light = count_vehicles/4
@@ -281,7 +233,15 @@ async def main():
     print(f"time: {(finish_time - start_time):.2f}")
 
     for i in range(4):
-        print(vehicles_times[i]);
+        print(vehicles_times[i])
+    
+    f = open("ai-semaphore-project/comparisons/1/test1.txt", "a")
+    f.write(f"\nTotal awaiting time for all {count_vehicles} vehicles = {awaiting_time_total:.2f} seconds\nMedium awaiting time for one vehicle = {(awaiting_time_total/count_vehicles):.2f} seconds \n")
+    f.write(f"Execution time: {(finish_time - start_time)/60:.2f} minutes\n")
+    for i in range(4):
+        f.write(f"Semaphore {i} times (in seconds): {vehicles_times[i]}\n");
+    f.write("\nNext Test\n")
+    f.close()
 
     sys.exit()
 
