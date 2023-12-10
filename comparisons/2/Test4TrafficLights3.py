@@ -9,6 +9,7 @@
 # 
 # rules: 
 # central agent controls the lights color's
+# the light with more cars on the queue is turned on after 20s
 
 
 import random
@@ -28,65 +29,32 @@ awaiting_time_total = 0
 position_ligths = [1, 3, 5, 7]
 start_position_cars = [0, 2, 4, 6] 
 awaiting_time_for_light = [0, 0, 0, 0]
-vehicles_times = [[], [], [], []]
-vehicles_lines = [[], [], [], []]
+vehicles_times = [[], [], [], []] # stores the time the vehicle passed in the red light after it leaves
+vehicles_queues = [[], [], [], []]
+vehicles_queue_time = [[], [], [], []] # stores the time the vehicle is passing in the red light queue (currently)
 
 class CentralCoordinationAgent(Agent):
     # Behaviour
     class CentralCoordinationBehav(CyclicBehaviour):
         async def on_start(self):
+            # the colors of the lights will be defined by the
+            # biggest queue, so, when the program starts, the
+            # coordination agent has to sleep a bit and let the cars
+            # get to the lights, so we can have queues
+            await asyncio.sleep(10) 
             print("Starting the traffic lights")
-            for i in range(len(self.agent.traffic_lights)):
-                traffic_light_jid = ""
-                traffic_light_jid = "tf" + str(i+1) + "@localhost"
-                msg = Message(to=traffic_light_jid) # who will recieve the message
-                
-                if self.agent.traffic_lights[i].number == 1 or self.agent.traffic_lights[i].number == 3:
-                    msg.body = GREEN_LIGHT   
-                    await self.send(msg)
-                if self.agent.traffic_lights[i].number == 2 or self.agent.traffic_lights[i].number == 4:
-                    msg.body = RED_LIGHT   
-                    await self.send(msg)
-
+            await asyncio.sleep(1)
             print("Managing the traffic lights")
 
         async def run(self):
-            for i in range(2):
-                color = self.agent.traffic_lights[i].color
-                number = self.agent.traffic_lights[i].number
-                if(number == 1 and color == GREEN_LIGHT):
-                    # if the first light is green, await 22 seconds, 
-                    # 1 green means 3 is green and 2 and 4 are red 
-                    # change it and the light 3 to red
-                    # and then await +8 seconds and change lights 2 and 4 to green
-                    await asyncio.sleep(22)
-                    traffic_light_jid = "tf" + str(number) + "@localhost"
-                    msg = Message(to=traffic_light_jid)
-                    msg.body = RED_LIGHT   
-                    await self.send(msg)
-                    traffic_light_jid = "tf" + str(3) + "@localhost"
-                    msg = Message(to=traffic_light_jid)
-                    msg.body = RED_LIGHT   
-                    await self.send(msg)
+            biggest_queue = vehicles_queues.index(max(vehicles_queues, key=len)) + 1
+            # ^ this stores the traffic light with the biggest queue (+1 because list index starts with 0)
 
-                    await asyncio.sleep(8)
+            if(biggest_queue == 1 or biggest_queue == 3):
+                    # if the 1 or 3 queue is the worst, turn green; 
+                    # 1 green means 3 is green and 2 and 4 are red 
                     traffic_light_jid = "tf" + str(2) + "@localhost"
                     msg = Message(to="tf2@localhost")
-                    msg.body = GREEN_LIGHT   
-                    await self.send(msg)
-                    traffic_light_jid = "tf" + str(4) + "@localhost"
-                    msg = Message(to=traffic_light_jid)
-                    msg.body = GREEN_LIGHT   
-                    await self.send(msg)
-
-                elif(number == 1 and color == RED_LIGHT):
-                    # if the first light is red, await 22 seconds,
-                    # 1 red means 3 is red and 2 and 4 are green 
-                    # change the lights 2 and 4 to red,
-                    # and then await +8 seconds and change lights 1 and 3 to green
-                    await asyncio.sleep(22)
-                    traffic_light_jid = "tf" + str(2) + "@localhost"
-                    msg = Message(to=traffic_light_jid)
                     msg.body = RED_LIGHT   
                     await self.send(msg)
                     traffic_light_jid = "tf" + str(4) + "@localhost"
@@ -94,8 +62,8 @@ class CentralCoordinationAgent(Agent):
                     msg.body = RED_LIGHT   
                     await self.send(msg)
 
-                    await asyncio.sleep(8)
-                    traffic_light_jid = "tf" + str(number) + "@localhost"
+                    await asyncio.sleep(6)
+                    traffic_light_jid = "tf" + str(biggest_queue) + "@localhost"
                     msg = Message(to=traffic_light_jid)
                     msg.body = GREEN_LIGHT   
                     await self.send(msg)
@@ -103,6 +71,30 @@ class CentralCoordinationAgent(Agent):
                     msg = Message(to=traffic_light_jid)
                     msg.body = GREEN_LIGHT   
                     await self.send(msg)
+
+            elif(biggest_queue == 2 or biggest_queue == 4):
+                    # if the 2 or 4 queue is the worst, turn green; 
+                    # 2 green means 4 is green and 1 and 3 are red 
+                    traffic_light_jid = "tf" + str(1) + "@localhost"
+                    msg = Message(to=traffic_light_jid)
+                    msg.body = RED_LIGHT   
+                    await self.send(msg)
+                    traffic_light_jid = "tf" + str(3) + "@localhost"
+                    msg = Message(to=traffic_light_jid)
+                    msg.body = RED_LIGHT   
+                    await self.send(msg)
+
+                    await asyncio.sleep(6)
+                    traffic_light_jid = "tf" + str(biggest_queue) + "@localhost"
+                    msg = Message(to=traffic_light_jid)
+                    msg.body = GREEN_LIGHT   
+                    await self.send(msg)
+                    traffic_light_jid = "tf" + str(4) + "@localhost"
+                    msg = Message(to=traffic_light_jid)
+                    msg.body = GREEN_LIGHT   
+                    await self.send(msg)
+            
+            await asyncio.sleep(20)
     # Behaviour
 
     def __init__(self, tf1, tf2, tf3, tf4, jid: str, password: str, verify_security: bool = False, *args, **kwargs):
@@ -136,7 +128,7 @@ class TrafficLight(Agent):
 
     def __init__(self, postion, number, jid: str, password: str, verify_security: bool = False, *args, **kwargs):
         super().__init__(jid, password, verify_security)
-        self.color = ""
+        self.color = RED_LIGHT
         self.position = postion
         self.number = number
         self.count = 0
@@ -185,6 +177,7 @@ class Vehicle(Agent):
 
             # after the car reached the traffic light
             if self.agent.position >= position_light:    
+                count = 0
                 while True:
                     light_color = self.agent.traffic_light.get_color()
 
@@ -195,6 +188,8 @@ class Vehicle(Agent):
                         for i in range(len(position_ligths)):
                             if self.agent.traffic_light.number == i+1: # if light 1, 2, 3, 4
                                 vehicles_times[i].append(round(total_stop_time, 2));
+                                if len(vehicles_queues[i]) != 0:
+                                    vehicles_queues[i].pop() # takes a number off the waiting list 
                         awaiting_time_total += total_stop_time
                         awaiting_time_for_light[(self.agent.traffic_light.number)-1] += total_stop_time
 
@@ -209,14 +204,17 @@ class Vehicle(Agent):
                         self.agent.reached_light_time = t.time()
 
                     if light_color == "Red":
+                        count += 1
                         # if the light is red, add to the waiting time of the agent:
                         # the time now minus the time it reached the red light 
                         # (so it doesn't count the time it was driving to get to the light, just the time it is waiting)
                         self.agent.waiting_time = t.time() - self.agent.reached_light_time
-                        for i in range(len(position_ligths)):
-                            if self.agent.traffic_light.number == i: # if light 1, 2, 3, 4
-                                vehicles_lines[i].append(1)
-                                # add a number insed of the line if it is waiting (the number doesn't matter, just to know how many cars are waiting)
+                        if count == 1: # the first time it reaches the red light
+                            for i in range(len(position_ligths)):
+                                if self.agent.traffic_light.number == i+1: # if light 1, 2, 3, 4
+                                    vehicles_queues[i].append(1)
+                                    # add a number insed of the queue if it is waiting (the number 
+                                    # doesn't matter, its just to know how many cars are waiting)
                     
                     await asyncio.sleep(1) # await a bit to check the light again
 
@@ -328,7 +326,7 @@ async def main():
         print(vehicles_times[i])
     
     # open the file and add the results
-    f = open("ai-semaphore-project/comparisons/documents/test2.txt", "a")
+    f = open("ai-semaphore-project/comparisons/documents/test3.txt", "a")
     f.write(f"\nTotal awaiting time for all {count_vehicles} vehicles = {awaiting_time_total:.2f} seconds\nMedium awaiting time for one vehicle = {(awaiting_time_total/count_vehicles):.2f} seconds \n")
     f.write(f"Execution time: {(finish_time - start_time)/60:.2f} minutes\n")
     for i in range(4):

@@ -235,7 +235,7 @@ async def main():
     for i in range(4):
         print(vehicles_times[i])
     
-    f = open("ai-semaphore-project/comparisons/1/test1.txt", "a")
+    f = open("ai-semaphore-project/comparisons/documents/test1.txt", "a")
     f.write(f"\nTotal awaiting time for all {count_vehicles} vehicles = {awaiting_time_total:.2f} seconds\nMedium awaiting time for one vehicle = {(awaiting_time_total/count_vehicles):.2f} seconds \n")
     f.write(f"Execution time: {(finish_time - start_time)/60:.2f} minutes\n")
     for i in range(4):

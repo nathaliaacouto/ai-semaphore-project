@@ -2,9 +2,11 @@
 ## Test 1 (Test4TrafficLights1.py)
 In this first test, there are no rules and the traffic lights control themselves.
 
-## Test 2 (Test4TrafficLights.py)
+## Test 2 (Test4TrafficLights.py) 🏆
 In this second test, there are no rules and another agent is added, the Central Coordination.
 This agent is responsible for controlling the color of the traffic lights.
+
+---
 
 This are the agents that were changed/added in this test:
 

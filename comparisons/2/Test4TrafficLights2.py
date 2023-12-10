@@ -1,3 +1,4 @@
+# THIS IS THE SAME TEST 2 OF COMPARISON 1, JUST HERE TO BE EASIER TO UNDERSTAND
 # this test is 2 crossroads, in it, there is:
 # 4 traffic lights with position and color 
 #   when TL1 is open, TL3 is also open, the others are closed
