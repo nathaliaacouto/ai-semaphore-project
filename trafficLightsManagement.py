@@ -10,7 +10,8 @@
 # 
 # rules: 
 # central agent controls the lights color's
-# the light with more cars on the queue is turned on after 20s
+# the light with more cars on the queue is turned on with a sleep time of 5s
+# when the emergency vehicle shows up, the light turns on
 
 
 import random
@@ -26,6 +27,8 @@ GREEN_LIGHT = "Green"
 YELLOW_LIGHT = "Yellow"
 RED_LIGHT = "Red"
 
+emergency_vehicle = [0, 0]
+emergency_vehicle_time = 0
 awaiting_time_total = 0
 position_ligths = [1, 3, 5, 7]
 start_position_cars = [0, 2, 4, 6] 
@@ -48,10 +51,15 @@ class CentralCoordinationAgent(Agent):
             print("Managing the traffic lights")
 
         async def run(self):
+            emergency_light = 0
+            if emergency_vehicle[0] == 1:
+                print("Emergency!")    
+                emergency_light = emergency_vehicle[1]
+
             # stores the traffic light with the biggest queue (+1 because list index starts with 0)
             biggest_queue = vehicles_queues.index(max(vehicles_queues, key=len)) + 1
 
-            if(biggest_queue == 1 or biggest_queue == 3):
+            if((biggest_queue == 1 or emergency_light == 1) or (biggest_queue == 3 or emergency_light == 3)):
                     # if the 1 or 3 queue is the worst, turn green; 
                     # 1 green means 3 is green and 2 and 4 are red 
                     traffic_light_jid = "tf" + str(2) + "@localhost"
@@ -73,7 +81,7 @@ class CentralCoordinationAgent(Agent):
                     msg.body = GREEN_LIGHT   
                     await self.send(msg)
 
-            elif(biggest_queue == 2 or biggest_queue == 4):
+            elif((biggest_queue == 2 or emergency_light == 2) or (biggest_queue == 2 or emergency_light == 2)):
                     # if the 2 or 4 queue is the worst, turn green; 
                     # 2 green means 4 is green and 1 and 3 are red 
                     traffic_light_jid = "tf" + str(1) + "@localhost"
@@ -95,7 +103,7 @@ class CentralCoordinationAgent(Agent):
                     msg.body = GREEN_LIGHT   
                     await self.send(msg)
             
-            await asyncio.sleep(20)
+            await asyncio.sleep(5)
     # Behaviour
 
     def __init__(self, tf1, tf2, tf3, tf4, jid: str, password: str, verify_security: bool = False, *args, **kwargs):
@@ -245,6 +253,92 @@ class Vehicle(Agent):
         self.add_behaviour(behaviour)
 
 
+class EmergencyVehicle(Agent):
+    class EmergencyVehicleBehav(CyclicBehaviour):
+        async def run(self):
+            position_light = 0
+            for i in range(len(position_ligths)):
+                if self.agent.traffic_light.number == i+1: # if light 1, 2, 3, 4
+                    position_light = position_ligths[i] # position in list
+
+            # if the position of the vehicle is the start position, it entered the road now
+            # when it enters, send a message to warn the traffic light to open
+            if self.agent.position == self.agent.start_position:
+                self.agent.creation_time = t.time() 
+
+                global emergency_vehicle
+                emergency_vehicle = [1, self.agent.traffic_light.number]
+
+            # while it has not reached the light
+            while self.agent.position < position_light:
+                light_color = self.agent.traffic_light.get_color()
+                # if the light is still red and the its getting close, slow down
+                if (light_color == RED_LIGHT) and (position_light - self.agent.position < 0.3):
+                    self.agent.position += (self.agent.speed - 0.2)
+                else:
+                    self.agent.position += self.agent.speed 
+                
+                await asyncio.sleep(0.5)
+
+            # after the car reached the traffic light
+            if self.agent.position >= position_light:    
+                count = 0
+                while True:
+                    light_color = self.agent.traffic_light.get_color()
+
+                    # if the light is green, check how much time it was waiting and let it go
+                    if light_color == GREEN_LIGHT or light_color == YELLOW_LIGHT: 
+                        total_stop_time = self.agent.waiting_time
+                        
+                        global emergency_vehicle_time
+                        emergency_vehicle_time += total_stop_time
+
+                        emergency_vehicle = [0, 0]
+
+                        print(f"{light_color}, going. The {self.agent.emergency_name} was in the red light {self.agent.traffic_light.number} for {total_stop_time:.2f} seconds")
+                        
+                        self.kill(exit_code=10) # if it went ahead, it doesn't matter to this test anymore
+                        break # get out of the loop
+
+                    # if the light is red and it just got there (the waiting time is still zero):
+                    # this is the time it reached the traffic light
+                    elif light_color == RED_LIGHT and self.agent.waiting_time == 0:
+                        self.agent.reached_light_time = t.time()
+
+                    if light_color == RED_LIGHT:
+                        count += 1
+                        # if the light is red, add to the waiting time of the agent:
+                        # the time now minus the time it reached the red light 
+                        # (so it doesn't count the time it was driving to get to the light, just the time it is waiting)
+                        self.agent.waiting_time = t.time() - self.agent.reached_light_time
+                    
+                    await asyncio.sleep(0.5) # await a bit to check the light again
+
+    def __init__(self, start_position, speed, traffic_light, jid: str, password: str, verify_security: bool = False, *args,
+                 **kwargs):
+        super().__init__(jid, password, verify_security)
+        names = ["Ambulance", "Police", "Firefighters"]
+        self.emergency_name = random.choice(names) 
+        self.waiting_time = 0
+        self.traffic_light = traffic_light
+        self.position = start_position
+        self.start_position = start_position
+        self.creation_time = 0
+        self.reached_light_time = 0
+        self.speed = speed
+
+    def stop_on_light(self, color):
+        if color == "Red":
+            print("Emergency Vehicle - Stop, red light")
+
+    def get_await_time(self):
+        return self.waiting_time
+
+    async def setup(self):
+        await super().setup()
+
+        behaviour = self.EmergencyVehicleBehav()
+        self.add_behaviour(behaviour)
 
 class Lane(Agent):
     def __init__(self, lane_id, jid: str, password: str, verify_security: bool = False, *args, **kwargs):
@@ -286,7 +380,7 @@ async def main():
     await traffic_light_agent4.start()
 
     # create central agent
-    central_agent = CentralCoordinationAgent(traffic_light_agent1, traffic_light_agent2, traffic_light_agent3, traffic_light_agent4, "admin@localhost", "password")
+    central_agent = CentralCoordinationAgent(traffic_light_agent1, traffic_light_agent2, traffic_light_agent3, traffic_light_agent4, "central@localhost", "password")
     await central_agent.start()
 
     # create roads
@@ -295,7 +389,9 @@ async def main():
 
     # create vehicles
     count_vehicles = 0
+    emergency_start = round(random.uniform(0, 25))
     for i in range(25): # range * 4 is the total number of vehicles created
+
         speed = round(random.uniform(0.4, 1.0), 1)
         vehicle_agent1 = Vehicle(start_position_cars[0], speed, traffic_light_agent1, "admin@localhost", "password")
         await vehicle_agent1.start()
@@ -305,6 +401,23 @@ async def main():
         vehicle_agent2 = Vehicle(start_position_cars[1], speed, traffic_light_agent2, "admin@localhost", "password")
         await vehicle_agent2.start()
         road_agent2.add_vehicle(0, start_position_cars[1], speed, traffic_light_agent2, "admin@localhost", "password")
+
+        if emergency_start == i:            
+            traffic_light = round(random.uniform(1, 4))
+            if traffic_light == 1:
+                value = 0
+                traffic_light_emergency = traffic_light_agent1
+            elif traffic_light == 2:
+                value = 1
+                traffic_light_emergency = traffic_light_agent2
+            elif traffic_light == 3:
+                value = 2
+                traffic_light_emergency = traffic_light_agent3
+            elif traffic_light == 4:
+                value = 3
+                traffic_light_emergency = traffic_light_agent4
+            emergency = EmergencyVehicle(start_position_cars[value], 0.5, traffic_light_emergency, "emergency@localhost", "password")
+            await emergency.start()
 
         speed = round(random.uniform(0.4, 1.0), 1)
         vehicle_agent3 = Vehicle(start_position_cars[2], speed, traffic_light_agent3, "admin@localhost", "password")
@@ -338,11 +451,12 @@ async def main():
         print(vehicles_times[i])
     
     # open the file and add the results
-    f = open("ai-semaphore-project/result.txt", "a")
+    f = open("result.txt", "a")
     f.write(f"\nTotal awaiting time for all {count_vehicles} vehicles = {awaiting_time_total:.2f} seconds\nMedium awaiting time for one vehicle = {(awaiting_time_total/count_vehicles):.2f} seconds \n")
+    f.write(f"Emergency vehicle awaiting time: {emergency_vehicle_time:.2f}\n")
     f.write(f"Execution time: {(finish_time - start_time)/60:.2f} minutes\n")
     for i in range(4):
-        f.write(f"Semaphore {i+1} times (in seconds): {vehicles_times[i]}\n");
+        f.write(f"Semaphore {i+1} medium and times (in seconds): {(sum(vehicles_times[i])/count_vehicles/4):.2f} {vehicles_times[i]}\n");
     f.write("\nNext Test\n")
     f.close()
 

@@ -1,50 +1,55 @@
 
-Total awaiting time for all 100 vehicles = 913.06 seconds
-Medium awaiting time for one vehicle = 9.13 seconds 
-Execution time: 2.54 minutes
-Semaphore 1 times (in seconds): [15.02, 10.01, 4.0, 0, 0, 0, 0, 0, 11.03, 16.02, 0.0, 23.04, 6.03, 0, 0, 0, 0, 12.02, 23.03, 6.01, 18.02, 1.0, 0, 0, 0]
-Semaphore 2 times (in seconds): [2.0, 40.04, 8.01, 36.04, 30.03, 24.02, 19.02, 14.01, 0, 0, 0, 0, 14.01, 20.02, 3.0, 26.03, 9.01, 0, 0, 0, 0, 26.03, 20.03, 14.01, 9.01]
-Semaphore 3 times (in seconds): [15.01, 4.0, 10.01, 0, 0, 0, 0, 0, 22.02, 5.0, 0, 11.01, 17.02, 0, 0, 0, 0, 17.04, 0.0, 23.03, 6.01, 12.01, 0, 0, 0]
-Semaphore 4 times (in seconds): [35.04, 24.02, 13.01, 2.0, 41.05, 30.03, 19.03, 8.01, 0, 0, 0, 0, 8.01, 14.01, 25.04, 20.02, 3.0, 0, 0, 0, 0, 14.01, 20.02, 26.03, 9.01]
+Total awaiting time for all 100 vehicles = 437.52 seconds
+Medium awaiting time for one vehicle = 4.38 seconds 
+Emergency vehicle awaiting time: 0.00
+Execution time: 2.55 minutes
+Semaphore 1 medium and times (in seconds): 0.2278 [15.02, 4.0, 9.01, 0, 0, 4.01, 10.02, 0, 0, 3.0, 9.01, 0, 0, 8.01, 2.0, 0, 0, 7.01, 2.0, 0, 0, 6.01, 1.0, 0, 11.02]
+Semaphore 2 medium and times (in seconds): 0.3329000000000001 [26.03, 14.01, 3.0, 21.02, 10.01, 0, 0, 9.01, 4.0, 0, 0, 3.0, 9.02, 0, 0, 7.03, 2.0, 0, 0, 1.0, 7.01, 0, 11.01, 0.0, 6.01]
+Semaphore 3 medium and times (in seconds): 0.21777500000000002 [15.02, 4.0, 10.01, 0, 0, 9.01, 3.0, 0, 0, 3.0, 9.01, 0, 0, 2.0, 8.01, 0, 0, 1.0, 7.03, 0, 0, 0.0, 6.01, 0, 10.01]
+Semaphore 4 medium and times (in seconds): 0.3152750000000001 [20.02, 9.01, 26.02, 15.01, 4.0, 0, 0, 8.01, 3.0, 0, 0, 2.0, 8.01, 0, 0, 7.01, 2.0, 0, 0, 6.01, 0.0, 0, 0, 5.0, 11.01]
 
 Next Test
 
-Total awaiting time for all 100 vehicles = 907.15 seconds
-Medium awaiting time for one vehicle = 9.07 seconds 
+Total awaiting time for all 100 vehicles = 425.61 seconds
+Medium awaiting time for one vehicle = 4.26 seconds 
+Emergency vehicle awaiting time: 0.00
 Execution time: 2.54 minutes
-Semaphore 1 times (in seconds): [15.01, 4.0, 10.01, 0, 0, 0, 0, 0, 5.0, 0.0, 11.01, 23.06, 17.01, 0, 0, 0, 0, 22.05, 6.01, 0.0, 12.04, 18.02, 0, 0, 0]
-Semaphore 2 times (in seconds): [13.01, 2.0, 41.05, 30.03, 19.02, 8.01, 36.04, 25.02, 0, 0, 0, 0, 8.03, 20.03, 3.0, 14.03, 26.03, 0, 0, 0, 0, 26.03, 9.01, 20.02, 15.02]
-Semaphore 3 times (in seconds): [15.01, 4.0, 10.01, 0, 0, 0, 0, 0, 22.02, 16.03, 11.01, 5.02, 0.0, 0, 0, 0, 0, 17.02, 5.01, 23.05, 11.02, 0.0, 0, 0, 0]
-Semaphore 4 times (in seconds): [35.03, 24.04, 18.01, 13.01, 2.0, 41.04, 30.03, 8.01, 0, 0, 0, 0, 8.01, 19.04, 14.02, 25.04, 3.0, 0, 0, 0, 0, 14.01, 26.02, 20.04, 9.01]
+Semaphore 1 medium and times (in seconds): 0.22542499999999996 [14.01, 4.0, 10.01, 0, 0, 3.0, 10.02, 0, 0, 3.0, 9.02, 0, 0, 8.03, 2.0, 0, 0, 7.03, 2.0, 0, 0, 0.0, 7.03, 0, 11.02]
+Semaphore 2 medium and times (in seconds): 0.30792500000000006 [26.02, 15.01, 4.0, 21.02, 10.01, 0, 0, 9.01, 4.01, 0, 0, 2.0, 8.03, 0, 0, 8.04, 2.0, 0, 0, 1.0, 7.01, 0, 0, 0.0, 6.01]
+Semaphore 3 medium and times (in seconds): 0.21775000000000003 [15.02, 9.01, 4.0, 0, 0, 9.01, 4.01, 0, 0, 3.0, 9.01, 0, 0, 7.02, 2.0, 0, 0, 1.0, 7.01, 0, 0, 0.0, 6.0, 0, 11.01]
+Semaphore 4 medium and times (in seconds): 0.3128500000000001 [25.03, 20.02, 3.0, 15.02, 9.01, 0, 0, 3.0, 9.01, 0, 0, 2.0, 8.01, 0, 0, 7.01, 2.0, 0, 0, 6.01, 0.0, 0, 5.01, 11.01, 0.0]
 
 Next Test
 
-Total awaiting time for all 100 vehicles = 913.12 seconds
-Medium awaiting time for one vehicle = 9.13 seconds 
+Total awaiting time for all 100 vehicles = 444.62 seconds
+Medium awaiting time for one vehicle = 4.45 seconds 
+Emergency vehicle awaiting time: 2.51
 Execution time: 2.54 minutes
-Semaphore 1 times (in seconds): [15.02, 4.0, 10.01, 0, 0, 0, 0, 0, 17.01, 0.0, 6.01, 23.03, 12.01, 0, 0, 0, 0, 23.05, 0, 6.01, 11.02, 18.02, 0, 0, 0]
-Semaphore 2 times (in seconds): [2.0, 41.04, 19.03, 13.01, 8.01, 36.03, 30.02, 25.02, 0, 0, 0, 0, 19.05, 3.0, 26.05, 9.02, 15.01, 0, 0, 0, 0, 26.06, 15.02, 21.02, 9.01]
-Semaphore 3 times (in seconds): [15.02, 4.01, 10.01, 0, 0, 0, 0, 0, 22.02, 16.01, 11.01, 0.0, 6.01, 0, 0, 0, 0, 17.02, 0.0, 11.01, 6.01, 23.04, 0, 0, 0]
-Semaphore 4 times (in seconds): [1.0, 35.05, 24.02, 13.01, 41.04, 30.03, 19.02, 8.01, 0, 0, 0, 0, 8.0, 2.0, 14.01, 25.03, 20.04, 0, 0, 0, 0, 14.01, 20.02, 26.03, 9.01]
+Semaphore 1 medium and times (in seconds): 0.2304 [4.0, 15.02, 10.01, 0, 0, 4.0, 10.03, 0, 0, 3.01, 9.02, 0, 0, 8.01, 3.0, 0, 0, 7.03, 2.0, 0, 0, 6.01, 0.0, 0, 11.02]
+Semaphore 2 medium and times (in seconds): 0.3379000000000001 [26.02, 4.0, 21.02, 15.01, 10.01, 0, 0, 9.01, 3.0, 0, 0, 3.0, 9.01, 0, 0, 2.0, 8.01, 0, 0, 1.0, 7.01, 0, 11.05, 0.0, 6.01]
+Semaphore 3 medium and times (in seconds): 0.22025000000000003 [9.01, 4.0, 15.01, 0, 0, 9.01, 4.01, 0, 0, 3.0, 9.01, 0, 0, 2.0, 8.02, 0, 0, 1.0, 7.01, 0, 0, 0.0, 6.01, 0, 11.01]
+Semaphore 4 medium and times (in seconds): 0.3229000000000001 [20.02, 26.03, 15.01, 9.01, 4.0, 0, 0, 3.0, 9.01, 0, 0, 8.01, 3.0, 0, 0, 7.01, 2.0, 0, 0, 6.04, 1.0, 0, 5.01, 0, 11.01]
 
 Next Test
 
-Total awaiting time for all 100 vehicles = 907.11 seconds
-Medium awaiting time for one vehicle = 9.07 seconds 
+Total awaiting time for all 100 vehicles = 437.59 seconds
+Medium awaiting time for one vehicle = 4.38 seconds 
+Emergency vehicle awaiting time: 0.00
 Execution time: 2.54 minutes
-Semaphore 1 times (in seconds): [15.02, 9.01, 3.0, 0, 0, 0, 0, 0, 10.02, 0.0, 6.01, 23.03, 17.02, 0, 0, 0, 0, 6.01, 12.02, 17.04, 1.0, 24.04, 0, 0, 0]
-Semaphore 2 times (in seconds): [18.02, 13.01, 7.01, 2.0, 35.05, 30.02, 24.02, 41.05, 0, 0, 0, 0, 14.02, 20.03, 3.0, 26.03, 9.01, 0, 0, 0, 0, 26.03, 9.01, 15.02, 21.02]
-Semaphore 3 times (in seconds): [15.02, 4.0, 10.01, 0, 0, 0, 0, 0, 22.04, 5.0, 11.02, 17.04, 0.0, 0, 0, 0, 0, 17.02, 0.0, 23.06, 6.01, 12.01, 0, 0, 0]
-Semaphore 4 times (in seconds): [35.04, 29.03, 18.02, 13.01, 2.0, 41.04, 24.02, 8.01, 0, 0, 0, 0, 8.01, 19.03, 14.01, 3.0, 26.03, 0, 0, 0, 0, 14.02, 20.02, 8.01, 26.03]
+Semaphore 1 medium and times (in seconds): 0.23287499999999997 [15.01, 4.0, 10.01, 0, 0, 4.01, 10.01, 0, 0, 3.0, 9.03, 0, 0, 8.01, 3.0, 0, 0, 7.04, 2.0, 0, 0, 6.01, 1.0, 0, 11.02]
+Semaphore 2 medium and times (in seconds): 0.3304000000000001 [26.02, 15.01, 4.0, 20.02, 10.01, 0, 0, 9.02, 3.0, 0, 0, 8.01, 3.0, 0, 0, 2.0, 8.01, 0, 0, 1.0, 7.01, 0, 11.01, 5.04, 0.0]
+Semaphore 3 medium and times (in seconds): 0.21522500000000006 [9.01, 15.01, 4.0, 0, 0, 9.01, 4.0, 0, 0, 2.0, 9.01, 0, 0, 7.02, 2.0, 0, 0, 1.0, 7.01, 0, 0, 0.0, 6.01, 0, 11.01]
+Semaphore 4 medium and times (in seconds): 0.31537500000000007 [25.03, 20.02, 14.01, 9.01, 4.0, 0, 0, 3.0, 9.01, 0, 0, 8.01, 2.0, 0, 0, 7.01, 2.0, 0, 0, 6.01, 1.0, 0, 5.03, 0.0, 11.01]
 
 Next Test
 
-Total awaiting time for all 100 vehicles = 910.29 seconds
-Medium awaiting time for one vehicle = 9.10 seconds 
-Execution time: 2.54 minutes
-Semaphore 1 times (in seconds): [15.02, 4.0, 10.01, 0, 0, 0, 0, 0, 16.05, 11.03, 22.04, 0.0, 6.01, 0, 0, 0, 0, 0.0, 23.05, 12.03, 6.01, 18.03, 0, 0, 0]
-Semaphore 2 times (in seconds): [41.04, 30.04, 2.0, 19.02, 8.01, 36.04, 25.02, 14.01, 0, 0, 0, 0, 14.03, 20.05, 3.0, 26.05, 9.03, 0, 0, 0, 0, 26.05, 9.01, 15.02, 21.02]
-Semaphore 3 times (in seconds): [15.01, 4.0, 10.01, 0, 0, 0, 0, 0, 10.03, 22.02, 5.0, 17.05, 0.0, 0, 0, 0, 0, 17.02, 5.0, 0.0, 12.01, 23.05, 0, 0, 0]
-Semaphore 4 times (in seconds): [7.01, 35.04, 24.03, 1.0, 13.01, 41.04, 30.03, 19.02, 0, 0, 0, 0, 8.01, 14.04, 25.05, 20.02, 3.0, 0, 0, 0, 0, 14.02, 25.03, 20.02, 9.01]
+Total awaiting time for all 100 vehicles = 443.57 seconds
+Medium awaiting time for one vehicle = 4.44 seconds 
+Emergency vehicle awaiting time: 0.00
+Execution time: 2.55 minutes
+Semaphore 1 medium and times (in seconds): 0.22777500000000003 [15.01, 10.01, 4.0, 0, 0, 4.01, 10.03, 0, 0, 2.0, 9.01, 0, 0, 2.0, 8.01, 0, 0, 7.01, 2.0, 0, 0, 6.01, 1.0, 0, 11.01]
+Semaphore 2 medium and times (in seconds): 0.327925 [26.03, 15.01, 4.0, 21.02, 10.02, 0, 0, 9.01, 3.0, 0, 0, 8.03, 3.0, 0, 0, 2.0, 8.03, 0, 0, 0.0, 7.01, 0, 10.01, 0, 5.0]
+Semaphore 3 medium and times (in seconds): 0.242775 [15.02, 9.01, 4.0, 0, 0, 9.01, 3.0, 0, 0, 3.0, 9.01, 0, 0, 8.01, 2.0, 0, 0, 1.0, 7.01, 0, 5.01, 11.02, 0.0, 0, 11.01]
+Semaphore 4 medium and times (in seconds): 0.31037500000000007 [25.03, 20.02, 9.01, 3.0, 15.02, 0, 0, 8.01, 3.0, 0, 0, 2.0, 8.02, 0, 0, 1.0, 7.01, 0, 0, 6.01, 1.0, 0, 5.01, 11.01, 0]
 
 Next Test
