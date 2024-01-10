@@ -26,13 +26,12 @@ from spade.message import Message
 GREEN_LIGHT = "Green"
 YELLOW_LIGHT = "Yellow"
 RED_LIGHT = "Red"
-NORMAL = "Normal"
-ACCIDENT = "Accident"
 
 emergency_vehicle = [0, 0]
 emergency_vehicle_time = 0
 awaiting_time_total = 0
 accident = False
+bad_weather = False
 position_ligths = [1, 3, 5, 7]
 start_position_cars = [0, 2, 4, 6] 
 awaiting_time_for_light = [0, 0, 0, 0]
@@ -121,7 +120,7 @@ class CentralCoordinationAgent(Agent):
 
 class DisruptionManagement(Agent):
     # Behaviour
-    class DisruptionManagementBehav(CyclicBehaviour):
+    class DisruptionManagementBehav(OneShotBehaviour):
         async def on_start(self):
             # this agent verifies any special circustance 
             # and send a message to the vehicles if so
@@ -131,13 +130,10 @@ class DisruptionManagement(Agent):
             if accident == True:
                 # if there is a accident, send message to cars walk slower 
                 print("Accident! Cars will move slower")
-                #msg = Message(to="car@localhost")
-                #msg.body = ACCIDENT  
-                #await self.send(msg)
-            #else:
-                #msg = Message(to="car@localhost")
-                #msg.body = NORMAL 
-                #await self.send(msg)
+            if bad_weather == True:
+                print("Bad weather conditions! Cars will move slower")
+            else:
+                print("Everything fine")
             
             await asyncio.sleep(5)
     # Behaviour
@@ -213,7 +209,7 @@ class Vehicle(Agent):
             while self.agent.position <= position_light:
                 light_color = self.agent.traffic_light.get_color()
                 
-                if accident == True:
+                if accident == True or bad_weather == True:
                     self.agent.position += (self.agent.speed - 0.2)
                 elif (light_color == RED_LIGHT) and (position_light - self.agent.position < 0.3):
                     # if the light is red and the car is getting close, slow down
@@ -277,10 +273,6 @@ class Vehicle(Agent):
         self.creation_time = 0
         self.reached_light_time = 0 # stores the time the car gets in the light
         self.speed = speed
-
-    def stop_on_light(self, color):
-        if color == "Red":
-            print("Stop, red light")
 
     def get_await_time(self):
         return self.waiting_time
@@ -365,13 +357,6 @@ class EmergencyVehicle(Agent):
         self.reached_light_time = 0
         self.speed = speed
 
-    def stop_on_light(self, color):
-        if color == "Red":
-            print("Emergency Vehicle - Stop, red light")
-
-    def get_await_time(self):
-        return self.waiting_time
-
     async def setup(self):
         await super().setup()
 
@@ -430,10 +415,13 @@ async def main():
     road_agent2 = Road("4763", 2, "admin@localhost", "password")
 
     # randomly generate accident when starting
-    accident_happening = round(random.uniform(0, 4))
-    if (accident_happening == 2):
+    conditions = round(random.uniform(0, 8))
+    if (conditions == 3):
         global accident
         accident = True
+    elif (conditions == 7):
+        global bad_weather
+        bad_weather = True
 
     # create vehicles
     count_vehicles = 0
@@ -498,10 +486,19 @@ async def main():
     for i in range(4):
         print(vehicles_times[i])
     
+    conditions_file = ""
+    if(bad_weather == True):
+        conditions_file = "Bad Weather! Cars go slower\n"
+    elif(accident == True):
+        conditions_file = "Accident! Cars go slower\n"
+    else:
+        conditions_file = "Normal day\n"
+
     # open the file and add the results
     f = open("result.txt", "a")
+    f.write(conditions_file)
     f.write(f"\nTotal awaiting time for all {count_vehicles} vehicles = {awaiting_time_total:.2f} seconds\nMedium awaiting time for one vehicle = {(awaiting_time_total/count_vehicles):.2f} seconds \n")
-    f.write(f"Emergency vehicle awaiting time: {emergency_vehicle_time:.2f}\n")
+    f.write(f"Emergency vehicle awaiting time = {emergency_vehicle_time:.2f}\n")
     f.write(f"Execution time: {(finish_time - start_time)/60:.2f} minutes\n")
     for i in range(4):
         f.write(f"Semaphore {i+1} medium and times (in seconds): {(sum(vehicles_times[i])/count_vehicles/4):.2f} {vehicles_times[i]}\n");
