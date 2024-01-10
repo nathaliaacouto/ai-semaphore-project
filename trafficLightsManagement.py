@@ -26,10 +26,13 @@ from spade.message import Message
 GREEN_LIGHT = "Green"
 YELLOW_LIGHT = "Yellow"
 RED_LIGHT = "Red"
+NORMAL = "Normal"
+ACCIDENT = "Accident"
 
 emergency_vehicle = [0, 0]
 emergency_vehicle_time = 0
 awaiting_time_total = 0
+accident = False
 position_ligths = [1, 3, 5, 7]
 start_position_cars = [0, 2, 4, 6] 
 awaiting_time_for_light = [0, 0, 0, 0]
@@ -116,6 +119,38 @@ class CentralCoordinationAgent(Agent):
         self.add_behaviour(behaviour)
 
 
+class DisruptionManagement(Agent):
+    # Behaviour
+    class DisruptionManagementBehav(CyclicBehaviour):
+        async def on_start(self):
+            # this agent verifies any special circustance 
+            # and send a message to the vehicles if so
+            print("Starting Disruption Management Agent")
+
+        async def run(self):
+            if accident == True:
+                # if there is a accident, send message to cars walk slower 
+                print("Accident! Cars will move slower")
+                #msg = Message(to="car@localhost")
+                #msg.body = ACCIDENT  
+                #await self.send(msg)
+            #else:
+                #msg = Message(to="car@localhost")
+                #msg.body = NORMAL 
+                #await self.send(msg)
+            
+            await asyncio.sleep(5)
+    # Behaviour
+
+    def __init__(self, jid: str, password: str, verify_security: bool = False, *args, **kwargs):
+        super().__init__(jid, password, verify_security)
+
+    async def setup(self):
+        await super().setup()
+        behaviour = self.DisruptionManagementBehav()
+        self.add_behaviour(behaviour)
+
+
 class TrafficLight(Agent):
     # Behaviour
     class TrafficLightBehav(CyclicBehaviour):
@@ -177,8 +212,11 @@ class Vehicle(Agent):
             # while the car has not reached the light
             while self.agent.position <= position_light:
                 light_color = self.agent.traffic_light.get_color()
-                # if the light is red and the car is getting close, slow down
-                if (light_color == RED_LIGHT) and (position_light - self.agent.position < 0.3):
+                
+                if accident == True:
+                    self.agent.position += (self.agent.speed - 0.2)
+                elif (light_color == RED_LIGHT) and (position_light - self.agent.position < 0.3):
+                    # if the light is red and the car is getting close, slow down
                     self.agent.position += (self.agent.speed - 0.2)
                 else:
                     self.agent.position += self.agent.speed 
@@ -383,9 +421,19 @@ async def main():
     central_agent = CentralCoordinationAgent(traffic_light_agent1, traffic_light_agent2, traffic_light_agent3, traffic_light_agent4, "central@localhost", "password")
     await central_agent.start()
 
+    # create disruption agent
+    disruption_agent = DisruptionManagement("disruption@localhost", "password")
+    await disruption_agent.start()
+
     # create roads
     road_agent1 = Road("2450", 2, "admin@localhost", "password")
     road_agent2 = Road("4763", 2, "admin@localhost", "password")
+
+    # randomly generate accident when starting
+    accident_happening = round(random.uniform(0, 4))
+    if (accident_happening == 2):
+        global accident
+        accident = True
 
     # create vehicles
     count_vehicles = 0
@@ -393,12 +441,12 @@ async def main():
     for i in range(25): # range * 4 is the total number of vehicles created
 
         speed = round(random.uniform(0.4, 1.0), 1)
-        vehicle_agent1 = Vehicle(start_position_cars[0], speed, traffic_light_agent1, "admin@localhost", "password")
+        vehicle_agent1 = Vehicle(start_position_cars[0], speed, traffic_light_agent1, "car@localhost", "password")
         await vehicle_agent1.start()
         road_agent1.add_vehicle(0, start_position_cars[0], speed, traffic_light_agent1, "admin@localhost", "password")
 
         speed = round(random.uniform(0.4, 1.0), 1)
-        vehicle_agent2 = Vehicle(start_position_cars[1], speed, traffic_light_agent2, "admin@localhost", "password")
+        vehicle_agent2 = Vehicle(start_position_cars[1], speed, traffic_light_agent2, "car@localhost", "password")
         await vehicle_agent2.start()
         road_agent2.add_vehicle(0, start_position_cars[1], speed, traffic_light_agent2, "admin@localhost", "password")
 
@@ -420,12 +468,12 @@ async def main():
             await emergency.start()
 
         speed = round(random.uniform(0.4, 1.0), 1)
-        vehicle_agent3 = Vehicle(start_position_cars[2], speed, traffic_light_agent3, "admin@localhost", "password")
+        vehicle_agent3 = Vehicle(start_position_cars[2], speed, traffic_light_agent3, "car@localhost", "password")
         await vehicle_agent3.start()
         road_agent1.add_vehicle(1, start_position_cars[2], speed, traffic_light_agent3, "admin@localhost", "password")
 
         speed = round(random.uniform(0.4, 1.0), 1)
-        vehicle_agent4 = Vehicle(start_position_cars[3], speed, traffic_light_agent4, "admin@localhost", "password")
+        vehicle_agent4 = Vehicle(start_position_cars[3], speed, traffic_light_agent4, "car@localhost", "password")
         await vehicle_agent4.start()
         road_agent2.add_vehicle(1, start_position_cars[3], speed, traffic_light_agent4, "admin@localhost", "password")
 
