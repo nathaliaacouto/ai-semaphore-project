@@ -2,9 +2,10 @@
 # 4 traffic lights with position and color 
 #   when TL1 is open, TL3 is also open, the others are closed
 #   when TL2 is open, TL4 is also open, the others are closed
-# 100 cars, 
+# 100 cars in 3min 
 #   each car has a position and a random speed from 0.2 to 1 
 #   each car can only go *forward*
+#   when approaching the red light, the car slows down and stops
 # 4 roads with 2 lanes each
 # 
 # rules: 
@@ -47,8 +48,8 @@ class CentralCoordinationAgent(Agent):
             print("Managing the traffic lights")
 
         async def run(self):
+            # stores the traffic light with the biggest queue (+1 because list index starts with 0)
             biggest_queue = vehicles_queues.index(max(vehicles_queues, key=len)) + 1
-            # ^ this stores the traffic light with the biggest queue (+1 because list index starts with 0)
 
             if(biggest_queue == 1 or biggest_queue == 3):
                     # if the 1 or 3 queue is the worst, turn green; 
@@ -63,7 +64,7 @@ class CentralCoordinationAgent(Agent):
                     await self.send(msg)
 
                     await asyncio.sleep(6)
-                    traffic_light_jid = "tf" + str(biggest_queue) + "@localhost"
+                    traffic_light_jid = "tf" + str(1) + "@localhost"
                     msg = Message(to=traffic_light_jid)
                     msg.body = GREEN_LIGHT   
                     await self.send(msg)
@@ -85,7 +86,7 @@ class CentralCoordinationAgent(Agent):
                     await self.send(msg)
 
                     await asyncio.sleep(6)
-                    traffic_light_jid = "tf" + str(biggest_queue) + "@localhost"
+                    traffic_light_jid = "tf" + str(2) + "@localhost"
                     msg = Message(to=traffic_light_jid)
                     msg.body = GREEN_LIGHT   
                     await self.send(msg)
@@ -114,6 +115,7 @@ class TrafficLight(Agent):
             self.agent.count += 1
             msg = await self.receive(timeout= 400) # recieve a messagem from the central
 
+            # if its not the first time the light turns red, change to yellow
             if self.agent.count > 1:
                 if format(msg.body) == RED_LIGHT:
                     self.agent.color = YELLOW_LIGHT
@@ -121,6 +123,7 @@ class TrafficLight(Agent):
                     await asyncio.sleep(5)
                     self.agent.color = format(msg.body)
 
+            # change the color according to the message
             self.agent.color = format(msg.body)
 
             print(f"Traffic Light {self.agent.number} - {self.agent.color}") 
@@ -136,22 +139,14 @@ class TrafficLight(Agent):
     def get_number(self):
         return self.number
 
+    def get_color(self):
+        return self.color
+
     def change_time(self, new_time):
         self.time = new_time
 
-    def change_color(self):
-        if self.color == GREEN_LIGHT:
-            self.color = YELLOW_LIGHT
-        elif self.color == YELLOW_LIGHT:
-            self.color = RED_LIGHT
-        elif self.color == RED_LIGHT:
-            self.color = GREEN_LIGHT
-
-    def central_change_color(self, color):
+    def change_color(self, color):
         self.color = color
-
-    def get_color(self):
-        return self.color
 
     async def setup(self):
         await super().setup()
@@ -159,20 +154,27 @@ class TrafficLight(Agent):
         self.add_behaviour(behaviour)
     
 
-
 class Vehicle(Agent):
     class VehicleBehav(CyclicBehaviour):
         async def run(self):
             position_light = 0
             for i in range(len(position_ligths)):
-                if self.agent.traffic_light.number == i: # if light 1, 2, 3, 4
-                    position_light = position_ligths[i-1] # position 0 in list
+                if self.agent.traffic_light.number == i+1: # if light 1, 2, 3, 4
+                    position_light = position_ligths[i] # position in list
 
+            # if the position of the car is the start position, it entered the road now
             if self.agent.position == self.agent.start_position:
                 self.agent.creation_time = t.time() # the time car enters the road
 
+            # while the car has not reached the light
             while self.agent.position <= position_light:
-                self.agent.position += self.agent.speed # the car goes 0.2 per second (speed)
+                light_color = self.agent.traffic_light.get_color()
+                # if the light is red and the car is getting close, slow down
+                if (light_color == RED_LIGHT) and (position_light - self.agent.position < 0.3):
+                    self.agent.position += (self.agent.speed - 0.2)
+                else:
+                    self.agent.position += self.agent.speed 
+                
                 await asyncio.sleep(0.5)
 
             # after the car reached the traffic light
@@ -181,29 +183,31 @@ class Vehicle(Agent):
                 while True:
                     light_color = self.agent.traffic_light.get_color()
 
-                    if light_color == "Green": 
-                        # if the light is green, check how much time the car was waiting and let it go
-                        global awaiting_time_total
+                    # if the light is green, check how much time the car was waiting and let it go
+                    if light_color == GREEN_LIGHT or light_color == YELLOW_LIGHT: 
                         total_stop_time = self.agent.waiting_time
+
                         for i in range(len(position_ligths)):
                             if self.agent.traffic_light.number == i+1: # if light 1, 2, 3, 4
                                 vehicles_times[i].append(round(total_stop_time, 2));
                                 if len(vehicles_queues[i]) != 0:
                                     vehicles_queues[i].pop() # takes a number off the waiting list 
+                        
+                        global awaiting_time_total
                         awaiting_time_total += total_stop_time
                         awaiting_time_for_light[(self.agent.traffic_light.number)-1] += total_stop_time
 
-                        print(f"Green, going. The car was in the red light {self.agent.traffic_light.number} for {total_stop_time:.2f} seconds")
+                        print(f"{light_color}, going. The car was in the red light {self.agent.traffic_light.number} for {total_stop_time:.2f} seconds")
                         
                         self.kill(exit_code=10) # if the car went ahead, it doesn't matter to this test anymore
                         break # get out of the loop
 
-                    elif light_color == "Red" and self.agent.waiting_time == 0:
-                        # if the light is red and the car just got there (the waiting time is still zero):
-                        # this is the time the car reached the traffic light
+                    # if the light is red and the car just got there (the waiting time is still zero):
+                    # this is the time the car reached the traffic light
+                    elif light_color == RED_LIGHT and self.agent.waiting_time == 0:
                         self.agent.reached_light_time = t.time()
 
-                    if light_color == "Red":
+                    if light_color == RED_LIGHT:
                         count += 1
                         # if the light is red, add to the waiting time of the agent:
                         # the time now minus the time it reached the red light 
@@ -240,6 +244,8 @@ class Vehicle(Agent):
         behaviour = self.VehicleBehav()
         self.add_behaviour(behaviour)
 
+
+
 class Lane(Agent):
     def __init__(self, lane_id, jid: str, password: str, verify_security: bool = False, *args, **kwargs):
         super().__init__(jid, password, verify_security)
@@ -263,7 +269,10 @@ class Road(Agent):
 
 
 async def main():
+    # the time the program starts
     start_time = t.time();
+
+    # create traffic lights
     traffic_light_agent1 = TrafficLight(position_ligths[0], 1, "tf1@localhost", "password")
     await traffic_light_agent1.start()
 
@@ -276,30 +285,33 @@ async def main():
     traffic_light_agent4 = TrafficLight(position_ligths[3], 4, "tf4@localhost", "password")
     await traffic_light_agent4.start()
 
+    # create central agent
     central_agent = CentralCoordinationAgent(traffic_light_agent1, traffic_light_agent2, traffic_light_agent3, traffic_light_agent4, "admin@localhost", "password")
     await central_agent.start()
 
+    # create roads
     road_agent1 = Road("2450", 2, "admin@localhost", "password")
     road_agent2 = Road("4763", 2, "admin@localhost", "password")
 
+    # create vehicles
     count_vehicles = 0
-    for i in range(25): # 100 vehicles
-        speed = round(random.uniform(0.2, 1.0), 1)
+    for i in range(25): # range * 4 is the total number of vehicles created
+        speed = round(random.uniform(0.4, 1.0), 1)
         vehicle_agent1 = Vehicle(start_position_cars[0], speed, traffic_light_agent1, "admin@localhost", "password")
         await vehicle_agent1.start()
         road_agent1.add_vehicle(0, start_position_cars[0], speed, traffic_light_agent1, "admin@localhost", "password")
 
-        speed = round(random.uniform(0.2, 1.0), 1)
+        speed = round(random.uniform(0.4, 1.0), 1)
         vehicle_agent2 = Vehicle(start_position_cars[1], speed, traffic_light_agent2, "admin@localhost", "password")
         await vehicle_agent2.start()
         road_agent2.add_vehicle(0, start_position_cars[1], speed, traffic_light_agent2, "admin@localhost", "password")
 
-        speed = round(random.uniform(0.2, 1.0), 1)
+        speed = round(random.uniform(0.4, 1.0), 1)
         vehicle_agent3 = Vehicle(start_position_cars[2], speed, traffic_light_agent3, "admin@localhost", "password")
         await vehicle_agent3.start()
         road_agent1.add_vehicle(1, start_position_cars[2], speed, traffic_light_agent3, "admin@localhost", "password")
 
-        speed = round(random.uniform(0.2, 1.0), 1)
+        speed = round(random.uniform(0.4, 1.0), 1)
         vehicle_agent4 = Vehicle(start_position_cars[3], speed, traffic_light_agent4, "admin@localhost", "password")
         await vehicle_agent4.start()
         road_agent2.add_vehicle(1, start_position_cars[3], speed, traffic_light_agent4, "admin@localhost", "password")
@@ -330,7 +342,7 @@ async def main():
     f.write(f"\nTotal awaiting time for all {count_vehicles} vehicles = {awaiting_time_total:.2f} seconds\nMedium awaiting time for one vehicle = {(awaiting_time_total/count_vehicles):.2f} seconds \n")
     f.write(f"Execution time: {(finish_time - start_time)/60:.2f} minutes\n")
     for i in range(4):
-        f.write(f"Semaphore {i} times (in seconds): {vehicles_times[i]}\n");
+        f.write(f"Semaphore {i+1} times (in seconds): {vehicles_times[i]}\n");
     f.write("\nNext Test\n")
     f.close()
 
